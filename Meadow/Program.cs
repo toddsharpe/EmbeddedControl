@@ -10,7 +10,7 @@ namespace Meadow
 		static IApp app;
 		public static void Main(string[] args)
 		{
-			Console.WriteLine("\nMeadow Controll");
+			Console.WriteLine("\nMeadow Control");
 			app = new MeadowApp();
 
 			if (app is IAsyncApp asyncApp)

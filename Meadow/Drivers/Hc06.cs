@@ -11,7 +11,6 @@ namespace Meadow.Drivers
 	//https://www.olimex.com/Products/Components/RF/BLUETOOTH-SERIAL-HC-06/resources/hc06.pdf
 	class Hc06
 	{
-		//Perhaps instead use 1200 * 2 ^ n?
 		private static readonly Dictionary<int, char> BaudLookup = new Dictionary<int, char>
 		{
 			{ 1200, '1' }, { 2400, '2' }, { 4800, '3' }, { 9600, '4' },
@@ -151,8 +150,6 @@ namespace Meadow.Drivers
 		{
 			return Task.Run<string>(() =>
 			{
-				Console.WriteLine($"Hc06::CommandSend - Request: {send}");
-
 				_internalOp = true;
 				_port.Write(Encoding.ASCII.GetBytes(send));
 				_signal.WaitOne();
@@ -160,10 +157,7 @@ namespace Meadow.Drivers
 				byte[] buffer = new byte[_port.BytesToRead];
 				_port.Read(buffer, 0, buffer.Length);
 
-				string response = Encoding.ASCII.GetString(buffer);
-				Console.WriteLine($"\tResponse: {response}");
-
-				return response;
+				return Encoding.ASCII.GetString(buffer);
 			});
 		}
 

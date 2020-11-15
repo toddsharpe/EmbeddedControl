@@ -26,6 +26,7 @@ namespace Meadow
 		public async Task Run()
 		{
 			await _bluetooth.Open();
+			Console.WriteLine("Bluetooth baud rate: " + _bluetooth.BaudRate);
 			string s = await _bluetooth.GetVersion();
 			Console.WriteLine(s);
 
