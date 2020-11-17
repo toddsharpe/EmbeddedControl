@@ -2,6 +2,10 @@
     x:Class="Ground.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Ground">
+    xmlns:local="using:Ground" xmlns:framework="using:Ground.Framework">
 
+	<Application.Resources>
+		<framework:BooleanToVisibilityConverter x:Key="VisibilityOfBool" />
+	</Application.Resources>
+	
 </Application>

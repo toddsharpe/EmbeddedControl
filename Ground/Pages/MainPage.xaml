@@ -10,6 +10,14 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
 	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
 
+		<StackPanel Grid.Row="1">
+			<TextBox Text="{Binding Path=Command, Mode=TwoWay}" />
+			<Button Content="Send" Command="{Binding Path=SendCommand}" IsEnabled="{Binding Path=IsLoaded, Mode=TwoWay}" />
+		</StackPanel>
 	</Grid>
 </framework:ViewModelPage>

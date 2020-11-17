@@ -120,6 +120,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Framework\BaseViewModel.cs" />
+    <Compile Include="Framework\BooleanToVisibilityConverter.cs" />
     <Compile Include="Framework\ILoadable.cs" />
     <Compile Include="Framework\Navigation.cs" />
     <Compile Include="Framework\RelayCommand.cs" />
@@ -159,7 +160,11 @@
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.10</Version>
     </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>12.0.3</Version>
+    </PackageReference>
   </ItemGroup>
+  <Import Project="..\Connect\Connect.projitems" Label="Shared" />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

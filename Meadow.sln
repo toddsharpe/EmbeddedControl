@@ -5,7 +5,13 @@ VisualStudioVersion = 16.0.30711.63
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meadow", "Meadow\Meadow.csproj", "{CD9A375C-3C95-4964-B500-5BBDE73FC3C0}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Connect", "Connect\Connect.shproj", "{0190D004-C2D0-4F59-9A02-AA524333D637}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Connect\Connect.projitems*{0190d004-c2d0-4f59-9a02-aa524333d637}*SharedItemsImports = 13
+		Connect\Connect.projitems*{cd9a375c-3c95-4964-b500-5bbde73fc3c0}*SharedItemsImports = 5
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU

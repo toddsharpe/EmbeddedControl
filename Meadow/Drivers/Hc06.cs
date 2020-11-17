@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Meadow.Drivers
 {
 	//https://www.olimex.com/Products/Components/RF/BLUETOOTH-SERIAL-HC-06/resources/hc06.pdf
-	class Hc06
+	class Hc06 : IDevice
 	{
 		private static readonly Dictionary<int, char> BaudLookup = new Dictionary<int, char>
 		{
@@ -21,17 +21,20 @@ namespace Meadow.Drivers
 		public int BaudRate => _port.BaudRate;
 		public int BytesToRead => _port.BytesToRead;
 
+		public bool IsOpen => _port.IsOpen;
+
 		private readonly AutoResetEvent _signal;
 		private readonly ISerialPort _port;
 		private bool _internalOp;
 		public event EventHandler DataReceived;
 
-		public Hc06(IIODevice device, SerialPortName port, int baudRate = 9600)
+		public Hc06(IIODevice device, SerialPortName port, int baudRate = 115200)
 		{
 			_signal = new AutoResetEvent(false);
 			_port = device.CreateSerialPort(port, baudRate, 8, Parity.None, StopBits.One);
 			_port.DataReceived += (s, e) =>
 			{
+				Console.WriteLine("Handler!");
 				if (_internalOp)
 				{
 					_signal.Set();
@@ -129,9 +132,19 @@ namespace Meadow.Drivers
 			return SendCommand("AT+VERSION");
 		}
 
+		public void Write(string s)
+		{
+			Write(Encoding.ASCII.GetBytes(s));
+		}
+		
 		public void Write(byte[] buffer)
 		{
-			_port.Write(buffer);
+			Write(buffer, 0, buffer.Length);
+		}
+
+		public void Write(byte[] buffer, int offset, int count)
+		{
+			_port.Write(buffer, offset, count);
 		}
 
 		public int Read(byte[] buffer, int offset, int length)
