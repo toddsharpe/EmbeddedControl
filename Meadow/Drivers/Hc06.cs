@@ -28,13 +28,13 @@ namespace Meadow.Drivers
 		private bool _internalOp;
 		public event EventHandler DataReceived;
 
-		public Hc06(IIODevice device, SerialPortName port, int baudRate = 115200)
+		public Hc06(IIODevice device, SerialPortName port, int baudRate = 921600)
 		{
 			_signal = new AutoResetEvent(false);
 			_port = device.CreateSerialPort(port, baudRate, 8, Parity.None, StopBits.One);
 			_port.DataReceived += (s, e) =>
 			{
-				Console.WriteLine("Handler!");
+				Console.WriteLine("DataReceived - {0}!", _port.BytesToRead);
 				if (_internalOp)
 				{
 					_signal.Set();
@@ -46,43 +46,44 @@ namespace Meadow.Drivers
 			_internalOp = false;
 		}
 
-		public async Task Open()
+		public void Open()
 		{
-			if (!await DetectBaudRate())
+			if (!DetectBaudRate())
 				throw new Exception("Open - DetectBaudRate Failed");
 		}
 
-		private Task<bool> DetectBaudRate()
+		private bool DetectBaudRate()
 		{
-			return Task.Run<bool>(() =>
+			//Try with 9600 default value
+			_port.Open();
+			if (TrySendReceive())
+				return true;
+			_port.ClearReceiveBuffer();
+			_port.Close();
+
+			//Try all known baud rates in descending order
+			foreach (int key in BaudLookup.Keys.Reverse())
 			{
-				//Try with 9600 default value
+				_port.BaudRate = key;
 				_port.Open();
 				if (TrySendReceive())
 					return true;
+				_port.ClearReceiveBuffer();
 				_port.Close();
-
-				//Try all known baud rates in descending order
-				foreach (int key in BaudLookup.Keys.Reverse())
-				{
-					_port.BaudRate = key;
-					_port.Open();
-					if (TrySendReceive())
-						return true;
-					_port.Close();
-				}
-				return false;
-			});
+			}
+			return false;
 		}
 
 		private bool TrySendReceive()
 		{
+			//Console.WriteLine("Trying with {0}", _port.BaudRate);
 			_internalOp = true;
 			_port.Write(Encoding.ASCII.GetBytes("AT"));
 
-			if (!_signal.WaitOne(1000))
+			if (!_signal.WaitOne(2000))
 			{
 				_internalOp = false;
+				//Console.WriteLine("timeout");
 				return false;
 			}
 
@@ -90,32 +91,39 @@ namespace Meadow.Drivers
 			_port.Read(buffer, 0, buffer.Length);
 
 			string response = Encoding.ASCII.GetString(buffer);
+			//Console.WriteLine(response);
 			return response == "OK";
 		}
 
-		public async Task SetBaud(int baud)
+		public void SetBaud(int baud)
 		{
 			if (!BaudLookup.ContainsKey(baud))
 				throw new ArgumentException("Invalid baud rate", nameof(baud));
 
 			string send = $"AT+BAUD{BaudLookup[baud]}";
 			string back = $"OK{baud}";
-			if (!await VerifyCommand(send, back))
+			if (!VerifyCommand(send, back))
 				throw new Exception("SetBaud - OperationFailed");
+
+			//Update port rate
+			_port.ClearReceiveBuffer();
+			_port.Close();
+			_port.BaudRate = baud;
+			_port.Open();
 		}
 
-		public async Task SetName(string name)
+		public void SetName(string name)
 		{
 			if (name.Length > 20)
 				throw new ArgumentException("Name limited to 20 characters", nameof(name));
 
 			string send = $"AT+NAME{name}";
 			string back = $"OK{name}";
-			if (!await VerifyCommand(send, back))
+			if (!VerifyCommand(send, back))
 				throw new Exception("SetName - OperationFailed");
 		}
 
-		public async Task SetPin(string pin)
+		public void SetPin(string pin)
 		{
 			int parsed;
 			if (pin.Length > 4 || !int.TryParse(pin, out parsed))
@@ -123,11 +131,11 @@ namespace Meadow.Drivers
 
 			string send = $"AT+PIN{pin}";
 			string back = "OKsetpin";
-			if (!await VerifyCommand(send, back))
+			if (!VerifyCommand(send, back))
 				throw new Exception("SetPin - OperationFailed");
 		}
 
-		public Task<string> GetVersion()
+		public string GetVersion()
 		{
 			return SendCommand("AT+VERSION");
 		}
@@ -149,7 +157,8 @@ namespace Meadow.Drivers
 
 		public int Read(byte[] buffer, int offset, int length)
 		{
-			return _port.Read(buffer, offset, buffer.Length);
+			//Console.WriteLine("BytesToRead: {0}", _port.BytesToRead);
+			return _port.Read(buffer, offset, Math.Min(_port.BytesToRead, buffer.Length));
 		}
 
 		public byte[] ReadAll()
@@ -159,24 +168,22 @@ namespace Meadow.Drivers
 			return buffer;
 		}
 
-		private Task<string> SendCommand(string send)
+		private string SendCommand(string send)
 		{
-			return Task.Run<string>(() =>
-			{
-				_internalOp = true;
-				_port.Write(Encoding.ASCII.GetBytes(send));
-				_signal.WaitOne();
+			_internalOp = true;
+			_port.Write(Encoding.ASCII.GetBytes(send));
+			_signal.WaitOne();
 
-				byte[] buffer = new byte[_port.BytesToRead];
-				_port.Read(buffer, 0, buffer.Length);
+			byte[] buffer = new byte[_port.BytesToRead];
+			_port.Read(buffer, 0, buffer.Length);
 
-				return Encoding.ASCII.GetString(buffer);
-			});
+			return Encoding.ASCII.GetString(buffer);
 		}
 
-		private async Task<bool> VerifyCommand(string send, string verify)
+		private bool VerifyCommand(string send, string verify)
 		{
-			string back = await SendCommand(send);
+			string back = SendCommand(send);
+			//Console.WriteLine("VerifyCommand {0},{1} -> {2}", send, verify, back);
 			return back == verify;
 		}
 	}

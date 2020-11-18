@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Meadow.IO
@@ -20,7 +21,6 @@ namespace Meadow.IO
 
 		public override long Position { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-		
 		private readonly IDevice _device;
 		public DeviceStream(IDevice device)
 		{
@@ -35,7 +35,7 @@ namespace Meadow.IO
 
 		public override int Read(byte[] buffer, int offset, int count)
 		{
-			Console.WriteLine("Read: {0} {1}", offset, count);
+			//Console.WriteLine("Read: {0} {1}", offset, count);
 			return _device.Read(buffer, offset, count);
 		}
 

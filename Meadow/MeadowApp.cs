@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace Meadow
 {
-	public class MeadowApp : App<F7Micro, MeadowApp>, IAsyncApp
+	public class MeadowApp : App<F7Micro, MeadowApp>
 	{
 		private readonly Hc06 _bluetooth;
 
@@ -26,12 +26,16 @@ namespace Meadow
 			_bluetooth = new Hc06(Device, Device.SerialPortNames.Com4);
 		}
 
-		public async Task Run()
+		public void Run()
 		{
-			await _bluetooth.Open();
+			_bluetooth.Open();
 			Console.WriteLine("Bluetooth baud rate: " + _bluetooth.BaudRate);
-			string s = await _bluetooth.GetVersion();
-			Console.WriteLine(s);
+			if (_bluetooth.BaudRate != 921600)
+			{
+				_bluetooth.SetBaud(921600);
+				Console.WriteLine("Bluetooth baud rate: " + _bluetooth.BaudRate);
+			}
+			Console.WriteLine(_bluetooth.GetVersion());
 
 			_bluetooth.DataReceived += _bluetooth_DataReceived;
 		}
@@ -40,11 +44,19 @@ namespace Meadow
 		{
 			DeviceStream stream = new DeviceStream(_bluetooth);
 			Message message = await Transport.Read<Message>(stream);
-			Console.WriteLine(message.GetType().Name);
 
-			if (message is CommandRequest command)
+			if (message == null)
 			{
-				Console.WriteLine("command {0} = {1}", command.Device, command.Value);
+				Console.WriteLine("null");
+			}
+			else
+			{
+				Console.WriteLine(message.GetType().Name);
+
+				if (message is CommandRequest command)
+				{
+					Console.WriteLine("command {0} = {1}", command.Device, command.Value);
+				}
 			}
 		}
 

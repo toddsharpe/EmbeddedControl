@@ -35,7 +35,6 @@ namespace Connect
 			byte[] buffer = new byte[length];
 			await stream.ReadAsync(buffer, 0, buffer.Length);
 			string json = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
-			Console.WriteLine(json);
 
 			return JsonConvert.DeserializeObject<T>(json, new JsonSerializerSettings
 			{
