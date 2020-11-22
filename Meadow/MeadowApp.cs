@@ -98,21 +98,19 @@ namespace Meadow
 				DispatchTime = (int)stopwatch.ElapsedMilliseconds;
 				stopwatch.Reset();
 
-				stopwatch.Start();
 				//Dispatch telem sender
+				stopwatch.Start();
 				_telemetrySender.Dispatch();
 				stopwatch.Stop();
 				TelemetrySendTime = (int)stopwatch.ElapsedMilliseconds;
 				stopwatch.Reset();
-
-				//Reset
-				CycleCount++;
 
 				//Sleep for next cycle
 				int sleep = ControlPeriod - DispatchTime;
 				Console.WriteLine(sleep);
 				if (sleep > 0)
 					Thread.Sleep(sleep);
+				CycleCount++;
 			}
 		}
 
