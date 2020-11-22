@@ -1,0 +1,14 @@
+ Dispatch - 01/01/1970 00:00:38
+ 995 
+ DataReceived - 83!
+01/01/1970 00:00:40_bluetooth_DataReceived: 4
+01/01/1970 00:00:40 after read
+01/01/1970 00:01:03    _bluetooth_DataReceived: 4
+CommandRequest
+command test = 1
+ Dispatch - 01/01/1970 00:01:03
+ 995 
+ Dispatch - 01/01/1970 00:01:04
+ 995 
+
+Json parsing takes 25 seconds?!

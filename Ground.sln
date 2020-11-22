@@ -7,6 +7,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ground", "Ground\Ground.csp
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Connect", "Connect\Connect.shproj", "{0190D004-C2D0-4F59-9A02-AA524333D637}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Notes", "_Notes", "{DE6A2F0E-CDC7-4320-B2C9-EBE09214697E}"
+	ProjectSection(SolutionItems) = preProject
+		_Notes\Notes.txt = _Notes\Notes.txt
+		_Notes\Todo.txt = _Notes\Todo.txt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Connect\Connect.projitems*{0190d004-c2d0-4f59-9a02-aa524333d637}*SharedItemsImports = 13
@@ -26,6 +32,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{5F621B1E-4B20-4E7E-A2C1-4B85C587ED79}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{5F621B1E-4B20-4E7E-A2C1-4B85C587ED79}.Debug|Any CPU.Build.0 = Debug|x86
+		{5F621B1E-4B20-4E7E-A2C1-4B85C587ED79}.Debug|Any CPU.Deploy.0 = Debug|x86
 		{5F621B1E-4B20-4E7E-A2C1-4B85C587ED79}.Debug|ARM.ActiveCfg = Debug|ARM
 		{5F621B1E-4B20-4E7E-A2C1-4B85C587ED79}.Debug|ARM.Build.0 = Debug|ARM
 		{5F621B1E-4B20-4E7E-A2C1-4B85C587ED79}.Debug|ARM.Deploy.0 = Debug|ARM

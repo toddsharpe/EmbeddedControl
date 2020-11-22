@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace Meadow.Framework
 {
-	interface IAsyncApp
+	interface IControlApp
 	{
-		Task Run();
+		void Load();
+		void Run();
 	}
 }

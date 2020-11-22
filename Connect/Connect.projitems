@@ -9,15 +9,14 @@
     <Import_RootNamespace>Connect</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\AckMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\CommandMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\MessageHeader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\MessageType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\TelemetryMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ModelSerializationBinder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\CommandRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\Message.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\Request.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\Response.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StructSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Transport.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Models\" />
   </ItemGroup>
 </Project>

@@ -34,7 +34,7 @@ namespace Meadow.Drivers
 			_port = device.CreateSerialPort(port, baudRate, 8, Parity.None, StopBits.One);
 			_port.DataReceived += (s, e) =>
 			{
-				Console.WriteLine("DataReceived - {0}!", _port.BytesToRead);
+				//Console.WriteLine("DataReceived - {0}!", _port.BytesToRead);
 				if (_internalOp)
 				{
 					_signal.Set();
