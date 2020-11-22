@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace Meadow
 {
-	public class MeadowApp : App<F7Micro, MeadowApp>, IControlApp
+	public class MeadowApp : App<F7Micro, MeadowApp>, IControlApp, IComponent
 	{
 		private readonly Hc06 _bluetooth;
 
@@ -36,15 +36,29 @@ namespace Meadow
 		//Telemetry config
 		private TelemetryConfig _telemetryConfig;
 
+		public string Name => "Control";
+
+		//Root values
+		public int CycleCount { get; private set; }
+		public int DispatchTime { get; private set; }
+		public int TelemetrySendTime { get; private set; } //Previous cycle
+
 		public MeadowApp()
 		{
 			_bluetooth = new Hc06(Device, Device.SerialPortNames.Com4);
+
+			CycleCount = 0;
+			DispatchTime = 0;
+			TelemetrySendTime = 0;
 
 			//Components
 			_sensorReader = new SensorReader(Device);
 
 			//Telemetry Config
 			_telemetryConfig = new TelemetryConfig();
+			_telemetryConfig.Add<MeadowApp, int>(this, i => i.CycleCount);
+			_telemetryConfig.Add<MeadowApp, int>(this, i => i.DispatchTime);
+			_telemetryConfig.Add<MeadowApp, int>(this, i => i.TelemetrySendTime);
 			_telemetryConfig.Add<SensorReader, float>(_sensorReader, i => i.Temperature);
 
 			//Telemetry sender
@@ -73,8 +87,7 @@ namespace Meadow
 			Console.WriteLine("ThreadID: " + Thread.CurrentThread.ManagedThreadId);
 			
 			Stopwatch stopwatch = new Stopwatch();
-			int cycleCount = 0;
-			int dispatchTime;
+
 
 			while (true)
 			{
@@ -82,26 +95,32 @@ namespace Meadow
 				stopwatch.Start();
 				Dispatch();
 				stopwatch.Stop();
-				dispatchTime = (int)stopwatch.ElapsedMilliseconds;
+				DispatchTime = (int)stopwatch.ElapsedMilliseconds;
+				stopwatch.Reset();
+
+				stopwatch.Start();
+				//Dispatch telem sender
+				_telemetrySender.Dispatch();
+				stopwatch.Stop();
+				TelemetrySendTime = (int)stopwatch.ElapsedMilliseconds;
+				stopwatch.Reset();
 
 				//Reset
-				stopwatch.Reset();
-				cycleCount++;
+				CycleCount++;
 
 				//Sleep for next cycle
-				int sleep = ControlPeriod - dispatchTime;
+				int sleep = ControlPeriod - DispatchTime;
 				Console.WriteLine(sleep);
 				if (sleep > 0)
 					Thread.Sleep(sleep);
 			}
 		}
 
-		private void Dispatch()
+		public void Dispatch()
 		{
 			Console.WriteLine("Dispatch - {0}", DateTime.Now);
 
 			_sensorReader.Dispatch();
-			_telemetrySender.Dispatch();
 		}
 
 		private void _bluetooth_DataReceived(object sender, EventArgs e)
