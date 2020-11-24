@@ -1,4 +1,5 @@
 ﻿using Connect;
+using Connect.Config;
 using Connect.Messages;
 using Meadow;
 using Meadow.Components;
@@ -23,25 +24,23 @@ using System.Threading.Tasks;
 
 namespace Meadow
 {
-	public class MeadowApp : App<F7Micro, MeadowApp>, IControlApp, IComponent
+	class MeadowApp : App<F7Micro, MeadowApp>, IControlApp, IComponent
 	{
 		private readonly Hc06 _bluetooth;
 
-		private int ControlPeriod = 1000 * 5; //5 seconds
+		private int ControlPeriod = 1000 * 1;
 
 		//Components
 		private SensorReader _sensorReader;
 		private TelemetrySender _telemetrySender;
 
-		//Telemetry config
-		private TelemetryConfig _telemetryConfig;
-
-		public string Name => "Control";
-
 		//Root values
 		public int CycleCount { get; private set; }
 		public int DispatchTime { get; private set; }
 		public int TelemetrySendTime { get; private set; } //Previous cycle
+
+		private Layout _layout;
+		private DeviceLookup _lookup;
 
 		public MeadowApp()
 		{
@@ -51,18 +50,20 @@ namespace Meadow
 			DispatchTime = 0;
 			TelemetrySendTime = 0;
 
+			_layout = new Layout("control", this);
+
 			//Components
-			_sensorReader = new SensorReader(Device);
+			_sensorReader = new SensorReader(Device, _layout);
+			_telemetrySender = new TelemetrySender(new DeviceStream(_bluetooth), TelemetryConfig.Meadow, _layout);
+
+			_lookup = _layout.GetLookup();
 
 			//Telemetry Config
-			_telemetryConfig = new TelemetryConfig();
-			_telemetryConfig.Add<MeadowApp, int>(this, i => i.CycleCount);
-			_telemetryConfig.Add<MeadowApp, int>(this, i => i.DispatchTime);
-			_telemetryConfig.Add<MeadowApp, int>(this, i => i.TelemetrySendTime);
-			_telemetryConfig.Add<SensorReader, float>(_sensorReader, i => i.Temperature);
-
-			//Telemetry sender
-			_telemetrySender = new TelemetrySender(new DeviceStream(_bluetooth), _telemetryConfig);
+			//_telemetryConfig = new TelemetryConfig();
+			//_telemetryConfig.Add<MeadowApp, int>(this, i => i.CycleCount);
+			//_telemetryConfig.Add<MeadowApp, int>(this, i => i.DispatchTime);
+			//_telemetryConfig.Add<MeadowApp, int>(this, i => i.TelemetrySendTime);
+			//_telemetryConfig.Add<SensorReader, float>(_sensorReader, i => i.Temperature);
 		}
 
 		public void Load()
@@ -88,7 +89,6 @@ namespace Meadow
 			
 			Stopwatch stopwatch = new Stopwatch();
 
-
 			while (true)
 			{
 				//Dispatch cycle
@@ -100,24 +100,22 @@ namespace Meadow
 
 				//Dispatch telem sender
 				stopwatch.Start();
-				_telemetrySender.Dispatch();
+				_telemetrySender.Dispatch(_lookup);
 				stopwatch.Stop();
 				TelemetrySendTime = (int)stopwatch.ElapsedMilliseconds;
 				stopwatch.Reset();
 
 				//Sleep for next cycle
 				int sleep = ControlPeriod - DispatchTime;
-				Console.WriteLine(sleep);
 				if (sleep > 0)
 					Thread.Sleep(sleep);
 				CycleCount++;
 			}
 		}
 
-		public void Dispatch()
+		public void Dispatch(DeviceLookup lookup = null)
 		{
-			Console.WriteLine("Dispatch - {0}", DateTime.Now);
-
+			//Console.WriteLine("Dispatch - {0}", DateTime.Now);
 			_sensorReader.Dispatch();
 		}
 
@@ -130,7 +128,9 @@ namespace Meadow
 			if (header.Type == MessageType.Command)
 			{
 				CommandMessage command = StructSerializer.DeserializeStruct<CommandMessage>(buffer);
-				Console.WriteLine("command {0} = {1}, {2}", command.Device, command.IValue, command.DValue);
+				Console.WriteLine("command {0} = {1},{2}", command.Device.Hash, command.Device.IValue, command.Device.DValue);
+
+				//IComponent component = _components.SingleOrDefault(i => i.Name)
 			}
 		}
 

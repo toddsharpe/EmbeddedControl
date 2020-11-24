@@ -53,7 +53,7 @@ namespace Meadow.IO
 
 		public override void Write(byte[] buffer, int offset, int count)
 		{
-			Console.WriteLine("Write: {0} {1}", offset, count);
+			//Console.WriteLine("Write: {0} {1}", offset, count);
 			_device.Write(buffer, offset, count);
 		}
 	}

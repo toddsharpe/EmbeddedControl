@@ -17,6 +17,14 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Collections.ObjectModel;
+using Syncfusion.UI.Xaml.Charts;
+using Ground.Models;
+using System.Threading;
+using Windows.UI.Core;
+using Windows.UI.Xaml;
+using Windows.ApplicationModel.Core;
+using Connect.Config;
 
 namespace Ground.Pages
 {
@@ -55,24 +63,33 @@ namespace Ground.Pages
 				OnPropertyChanged();
 			}
 		}
-		
+
+		public CurrentDeviceValues CurrentValues { get; }
+
+		private Dictionary<string, ObservableCollection<Data>> _telemetry;
+
+		public ChartSeriesCollection Series { get; }
+
 		public RelayCommand SendCommand { get; }
 
 		private readonly StreamSocket _stream;
 		public MainPageViewModel()
 		{
+			CurrentValues = new CurrentDeviceValues(TelemetryConfig.Meadow);
 			SendCommand = new RelayCommand((state) => Send(state));
 			_stream = new StreamSocket();
+			_telemetry = new Dictionary<string, ObservableCollection<Data>>();
+			Series = new ChartSeriesCollection();
 		}
 
 		public async void Send(object state)
 		{
-			CommandMessage message = new CommandMessage { Header = new MessageHeader { Type = MessageType.Command }, Device = Command, IValue = 1 };
-			byte[] bytes = StructSerializer.Serialize(message);
+			//CommandMessage message = new CommandMessage { Header = new MessageHeader { Type = MessageType.Command }, Device = Command, IValue = 1 };
+			//byte[] bytes = StructSerializer.Serialize(message);
 
-			DataWriter writer = new DataWriter(_stream.OutputStream);
-			writer.WriteBytes(bytes);
-			await writer.StoreAsync();
+			//DataWriter writer = new DataWriter(_stream.OutputStream);
+			//writer.WriteBytes(bytes);
+			//await writer.StoreAsync();
 			//Stream s = _stream.OutputStream.AsStreamForWrite();
 			//await Transport.WriteAsync(s, new CommandRequest { Device = Command, Value = 1 });
 		}
@@ -94,7 +111,19 @@ namespace Ground.Pages
 			//DeviceInformationCollection PairedBluetoothDevices = await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromPairingState(true));
 			//DeviceInformation device = PairedBluetoothDevices.Single(i => i.Name == "HC-06");
 
+			//AddToChart("Control.CycleCount");
+			AddToChart("Sensors.Temperature");
+
 			IsLoaded = true;
+		}
+
+		private void AddToChart(string device)
+		{
+			if (!_telemetry.ContainsKey(device))
+				_telemetry.Add(device, new ObservableCollection<Data>());
+
+			LineSeries series = new LineSeries { XBindingPath = "DateTime", YBindingPath = "Value", ItemsSource = _telemetry[device] };
+			Series.Add(series);
 		}
 
 		private async Task ListenAsync()
@@ -122,15 +151,43 @@ namespace Ground.Pages
 					telemetryBuffer.CopyTo(z, headerBuffer.Length);
 
 					TelemetryMessage telemetry = StructSerializer.DeserializeStruct<TelemetryMessage>(z);
+					CurrentValues.Update(telemetry);
 
 					Debug.WriteLine("Telemetry");
-					for (int i = 0; i < 4; i++)
+					for (int i = 0; i < TelemetryMessage.EntryLength; i++)
 					{
-						Debug.WriteLine("  {0} = {1},{2}", telemetry.Entries[i].Device,
-							telemetry.Entries[i].IValue,
-							telemetry.Entries[i].DValue);
+						Debug.WriteLine("  {0} = {1},{2}", telemetry.Devices[i].Hash, telemetry.Devices[i].IValue, telemetry.Devices[i].DValue);
 					}
 					Debug.WriteLine("");
+
+					//for (int i = 0; i < TelemetryMessage.EntryLength; i++)
+					//{
+					//	if (!_telemetry.ContainsKey(telemetry.Entries[i].Device))
+					//		_telemetry.Add(telemetry.Entries[i].Device, new ObservableCollection<Data>());
+
+					//	if (telemetry.Entries[i].IValue != 0)
+					//	{
+					//		TelemetryEntry capture = telemetry.Entries[i];
+					//		ObservableCollection<Data> collection = _telemetry[capture.Device];
+					//		Data data = new Data { DateTime = DateTime.Now, Value = capture.IValue };
+
+					//		CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+					//		{
+					//			collection.Add(data);
+					//		});
+					//	}
+					//	else if (telemetry.Entries[i].DValue != 0)
+					//	{
+					//		TelemetryEntry capture = telemetry.Entries[i];
+					//		ObservableCollection<Data> collection = _telemetry[capture.Device];
+					//		Data data = new Data { DateTime = DateTime.Now, Value = capture.DValue };
+
+					//		CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+					//		{
+					//			collection.Add(data);
+					//		});
+					//	}
+					//}
 				}
 			}
 		}

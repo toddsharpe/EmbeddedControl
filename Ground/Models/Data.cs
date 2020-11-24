@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Meadow.Framework
+namespace Ground.Models
 {
-	interface IComponent
+	class Data
 	{
-		void Load();
-		void Dispatch(DeviceLookup lookup = null);
+		public DateTime DateTime { get; set; }
+		public object Value { get; set; }
 	}
 }
