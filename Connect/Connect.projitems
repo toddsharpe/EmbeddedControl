@@ -9,12 +9,14 @@
     <Import_RootNamespace>Connect</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Config\TelemetryConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Config\TelemetryConfigEntry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\AckMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\CommandMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\DeviceValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\MessageHeader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\MessageType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\TelemetryMessage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ModelSerializationBinder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StructSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Transport.cs" />

@@ -9,9 +9,6 @@ namespace Connect.Messages
 	public struct CommandMessage
 	{
 		public MessageHeader Header;
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-		public string Device;
-		public long IValue;
-		public double DValue;
+		public DeviceValue Device;
 	}
 }

@@ -6,9 +6,13 @@ using System.Threading.Tasks;
 
 namespace Meadow.Framework
 {
-	interface IComponent
-	{
-		void Load();
-		void Dispatch(DeviceLookup lookup = null);
-	}
+    class DeviceToken<T> : IDeviceToken
+    {
+        public Int64 Hash { get; }
+        
+        public DeviceToken()
+        {
+
+        }
+    }
 }

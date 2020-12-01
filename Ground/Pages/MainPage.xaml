@@ -1,6 +1,7 @@
 ﻿<framework:ViewModelPage
 	xmlns:framework="using:Ground.Framework"
     x:Class="Ground.MainPage"
+	xmlns:syncfusion="using:Syncfusion.UI.Xaml.Charts"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Ground"
@@ -14,6 +15,25 @@
 			<RowDefinition Height="*" />
 			<RowDefinition Height="Auto" />
 		</Grid.RowDefinitions>
+
+		<Pivot>
+			<PivotItem Header="Current Value Table">
+				<ListView ItemsSource="{Binding Path=CurrentValues}" DisplayMemberPath="Display">
+				</ListView>
+			</PivotItem>
+			
+			<PivotItem Header="Graph">
+				<syncfusion:SfChart Series="{Binding Path=Series}">
+					<syncfusion:SfChart.PrimaryAxis>
+						<syncfusion:DateTimeAxis />
+						<!--AutoScrollingDelta="60" AutoScrollingDeltaType="Seconds" />-->
+					</syncfusion:SfChart.PrimaryAxis>
+					<syncfusion:SfChart.SecondaryAxis>
+						<syncfusion:NumericalAxis/>
+					</syncfusion:SfChart.SecondaryAxis>
+				</syncfusion:SfChart>
+			</PivotItem>
+		</Pivot>
 
 		<StackPanel Grid.Row="1">
 			<TextBox Text="{Binding Path=Command, Mode=TwoWay}" />

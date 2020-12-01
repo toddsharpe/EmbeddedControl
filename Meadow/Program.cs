@@ -12,6 +12,7 @@ namespace Meadow
 			if (args.Length > 0 && args[0] == "--exitOnDebug") return;
 
 			Console.WriteLine("\nMeadow Control");
+
 			IControlApp app = new MeadowApp();
 			app.Load();
 			app.Run();
