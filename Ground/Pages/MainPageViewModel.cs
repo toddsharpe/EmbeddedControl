@@ -18,7 +18,6 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Collections.ObjectModel;
-using Syncfusion.UI.Xaml.Charts;
 using Ground.Models;
 using System.Threading;
 using Windows.UI.Core;
@@ -66,20 +65,28 @@ namespace Ground.Pages
 
 		public CurrentDeviceValues CurrentValues { get; }
 
-		private Dictionary<string, ObservableCollection<Data>> _telemetry;
-
-		public ChartSeriesCollection Series { get; }
+		private Dictionary<Int64, ObservableCollection<Data>> _telemetry;
 
 		public RelayCommand SendCommand { get; }
 
 		private readonly StreamSocket _stream;
+		private readonly TelemetryConfig _telemetryConfig;
+		private readonly Dictionary<string, Int64> _telemetryDeviceToHash;
+		private readonly Dictionary<Int64, string> _telemetryHashToDevice;
+		private readonly Dictionary<Int64, TypeCode> _telemetryHashToType;
+
 		public MainPageViewModel()
 		{
-			CurrentValues = new CurrentDeviceValues(TelemetryConfig.Meadow);
-			SendCommand = new RelayCommand((state) => Send(state));
 			_stream = new StreamSocket();
-			_telemetry = new Dictionary<string, ObservableCollection<Data>>();
-			Series = new ChartSeriesCollection();
+			TelemetryConfig config = TelemetryConfig.Meadow;
+			_telemetryDeviceToHash = config.ToDictionary(i => i.Name, i => i.Name.GetHash64());
+			_telemetryHashToDevice = config.ToDictionary(i => i.Name.GetHash64(), i => i.Name);
+			_telemetryHashToType = config.ToDictionary(i => i.Name.GetHash64(), i => i.TypeCode);
+
+			_telemetry = new Dictionary<Int64, ObservableCollection<Data>>();
+			CurrentValues = new CurrentDeviceValues(_telemetryConfig);
+
+			SendCommand = new RelayCommand((state) => Send(state));
 		}
 
 		public async void Send(object state)
@@ -96,6 +103,9 @@ namespace Ground.Pages
 
 		public async Task LoadAsync()
 		{
+			//AddToChart("Control.CycleCount");
+			AddToChart("control.sensors.Temperature");
+
 			// Enumerate devices with the object push service
 			DeviceInformationCollection devices = await DeviceInformation.FindAllAsync(RfcommDeviceService.GetDeviceSelector(RfcommServiceId.SerialPort));
 			var device = devices.Single();
@@ -111,19 +121,19 @@ namespace Ground.Pages
 			//DeviceInformationCollection PairedBluetoothDevices = await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromPairingState(true));
 			//DeviceInformation device = PairedBluetoothDevices.Single(i => i.Name == "HC-06");
 
-			//AddToChart("Control.CycleCount");
-			AddToChart("Sensors.Temperature");
+
 
 			IsLoaded = true;
 		}
 
 		private void AddToChart(string device)
 		{
-			if (!_telemetry.ContainsKey(device))
-				_telemetry.Add(device, new ObservableCollection<Data>());
+			if (!_telemetryDeviceToHash.ContainsKey(device))
+				return;
+			Int64 hash = _telemetryDeviceToHash[device];
 
-			LineSeries series = new LineSeries { XBindingPath = "DateTime", YBindingPath = "Value", ItemsSource = _telemetry[device] };
-			Series.Add(series);
+			if (!_telemetry.ContainsKey(hash))
+				_telemetry.Add(hash, new ObservableCollection<Data>());
 		}
 
 		private async Task ListenAsync()
@@ -160,34 +170,37 @@ namespace Ground.Pages
 					}
 					Debug.WriteLine("");
 
-					//for (int i = 0; i < TelemetryMessage.EntryLength; i++)
-					//{
-					//	if (!_telemetry.ContainsKey(telemetry.Entries[i].Device))
-					//		_telemetry.Add(telemetry.Entries[i].Device, new ObservableCollection<Data>());
+					for (int i = 0; i < TelemetryMessage.EntryLength; i++)
+					{
+						if (telemetry.Devices[i].Hash == 0)
+							continue;
 
-					//	if (telemetry.Entries[i].IValue != 0)
-					//	{
-					//		TelemetryEntry capture = telemetry.Entries[i];
-					//		ObservableCollection<Data> collection = _telemetry[capture.Device];
-					//		Data data = new Data { DateTime = DateTime.Now, Value = capture.IValue };
+						//If we are not watching this hash, ignore it
+						if (!_telemetry.ContainsKey(telemetry.Devices[i].Hash))
+							continue;
 
-					//		CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-					//		{
-					//			collection.Add(data);
-					//		});
-					//	}
-					//	else if (telemetry.Entries[i].DValue != 0)
-					//	{
-					//		TelemetryEntry capture = telemetry.Entries[i];
-					//		ObservableCollection<Data> collection = _telemetry[capture.Device];
-					//		Data data = new Data { DateTime = DateTime.Now, Value = capture.DValue };
+						ObservableCollection<Data> collection = _telemetry[telemetry.Devices[i].Hash];
 
-					//		CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-					//		{
-					//			collection.Add(data);
-					//		});
-					//	}
-					//}
+						object value;
+						TypeCode type = _telemetryHashToType[telemetry.Devices[i].Hash];
+						switch (type)
+						{
+							case TypeCode.Int32:
+								value = telemetry.Devices[i].IValue;
+								break;
+							case TypeCode.Single:
+								value = telemetry.Devices[i].DValue;
+								break;
+							default:
+								throw new NotImplementedException();
+						}
+
+						Data data = new Data { DateTime = DateTime.Now, Value = value };
+						CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+						{
+							collection.Add(data);
+						});
+					}
 				}
 			}
 		}

@@ -18,20 +18,12 @@
 
 		<Pivot>
 			<PivotItem Header="Current Value Table">
-				<ListView ItemsSource="{Binding Path=CurrentValues}" DisplayMemberPath="Display">
+				<ListView ItemsSource="{Binding Path=CurrentValues}" DisplayMemberPath="Display" SelectionMode="None">
 				</ListView>
 			</PivotItem>
 			
 			<PivotItem Header="Graph">
-				<syncfusion:SfChart Series="{Binding Path=Series}">
-					<syncfusion:SfChart.PrimaryAxis>
-						<syncfusion:DateTimeAxis />
-						<!--AutoScrollingDelta="60" AutoScrollingDeltaType="Seconds" />-->
-					</syncfusion:SfChart.PrimaryAxis>
-					<syncfusion:SfChart.SecondaryAxis>
-						<syncfusion:NumericalAxis/>
-					</syncfusion:SfChart.SecondaryAxis>
-				</syncfusion:SfChart>
+
 			</PivotItem>
 		</Pivot>
 

@@ -57,13 +57,6 @@ namespace Meadow
 			_telemetrySender = new TelemetrySender(new DeviceStream(_bluetooth), TelemetryConfig.Meadow, _layout);
 
 			_lookup = _layout.GetLookup();
-
-			//Telemetry Config
-			//_telemetryConfig = new TelemetryConfig();
-			//_telemetryConfig.Add<MeadowApp, int>(this, i => i.CycleCount);
-			//_telemetryConfig.Add<MeadowApp, int>(this, i => i.DispatchTime);
-			//_telemetryConfig.Add<MeadowApp, int>(this, i => i.TelemetrySendTime);
-			//_telemetryConfig.Add<SensorReader, float>(_sensorReader, i => i.Temperature);
 		}
 
 		public void Load()
