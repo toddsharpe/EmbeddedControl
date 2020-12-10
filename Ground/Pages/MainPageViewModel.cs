@@ -70,7 +70,6 @@ namespace Ground.Pages
 		public RelayCommand SendCommand { get; }
 
 		private readonly StreamSocket _stream;
-		private readonly TelemetryConfig _telemetryConfig;
 		private readonly Dictionary<string, Int64> _telemetryDeviceToHash;
 		private readonly Dictionary<Int64, string> _telemetryHashToDevice;
 		private readonly Dictionary<Int64, TypeCode> _telemetryHashToType;
@@ -84,7 +83,7 @@ namespace Ground.Pages
 			_telemetryHashToType = config.ToDictionary(i => i.Name.GetHash64(), i => i.TypeCode);
 
 			_telemetry = new Dictionary<Int64, ObservableCollection<Data>>();
-			CurrentValues = new CurrentDeviceValues(_telemetryConfig);
+			CurrentValues = new CurrentDeviceValues(config);
 
 			SendCommand = new RelayCommand((state) => Send(state));
 		}
